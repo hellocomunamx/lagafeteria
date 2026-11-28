@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, startTransition, useActionState, useState } from "react";
+import { type FormEvent, startTransition, useActionState, useEffect, useRef, useState } from "react";
 import { darNip, darNipsATodos, type ResultadoNips } from "@/app/cuenta/portal/acciones";
 import { claseBoton, claseBotonSecundario, claseEntrada } from "@/components/cuenta/clases";
 
@@ -44,6 +44,13 @@ export function BotonNip({
 }) {
   const [estado, enviar, enviando] = useActionState<ResultadoNips, FormData>(darNip, {});
   const [abierto, setAbierto] = useState(false);
+  const tarjeta = useRef<HTMLDivElement>(null);
+  const hayNip = Boolean(estado.lista?.length);
+  // Al recibir NIP, la persona pasa al final de la lista (ya tiene acceso):
+  // la llevamos a la vista para que el NIP, que solo se muestra una vez, no se pierda.
+  useEffect(() => {
+    if (hayNip) tarjeta.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [hayNip]);
   const alEnviar = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const datos = new FormData(e.currentTarget);
@@ -51,7 +58,7 @@ export function BotonNip({
   };
   if (estado.lista?.length) {
     return (
-      <div className="w-full">
+      <div ref={tarjeta} className="w-full scroll-mt-24">
         <Tarjetas lista={estado.lista} handle={handle} empresa={empresa} />
         <p className="mt-2 text-xs font-medium text-[#0a7d4f]">{estado.ok}</p>
       </div>
